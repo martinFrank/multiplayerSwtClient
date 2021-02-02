@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.github.martinfrank.multiplayerclient.view.MapCanvas?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.Pane?>
+<VBox fx:id="vbox" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.github.martinfrank.multiplayerclient.control.Controller">
+    <!--    <fx:include source="menu.fxml" />-->
+    <HBox spacing="10" fx:id="hbox">
+        <padding>
+            <Insets bottom="4.0" left="4.0" right="4.0" top="4.0"/>
+        </padding>
+        <ScrollPane fx:id="mapScrollPane" hbarPolicy="ALWAYS" prefViewportHeight="232" prefViewportWidth="328"
+                    vbarPolicy="ALWAYS">
+            <MapCanvas fx:id="mapCanvas" width="1024" height="1024"/>
+        </ScrollPane>
+        <VBox>
+            <VBox>
+                <fx:include fx:id="steering" source="steering.fxml"/>
+            </VBox>
+            <Pane prefHeight="200"/>
+            <VBox>
+                <fx:include fx:id="connection" source="connection.fxml"/>
+            </VBox>
+        </VBox>
+    </HBox>
+</VBox>
