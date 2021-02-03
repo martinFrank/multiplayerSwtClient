@@ -16,26 +16,16 @@ public class MultiPlayerMetaClient {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MultiPlayerMetaClient.class);
 
-    public static final String MAP_DOWNLOAD_FILE = "C:\\Users\\fmar\\IdeaProjects\\multiplayerSwtClient\\maps\\download.zip";
-
     private final String server;
     private final int port;
-
 
     public MultiPlayerMetaClient(String server, int port) {
         this.server = server;
         this.port = port;
     }
 
-    public PlayerMetaData getPlayerData(String user) {
-        PlayerCredentials playerCredentials = new PlayerCredentials("Mosh", "snakeitsasnake");
-        ObjectMapper mapper = new ObjectMapper();
-        String logonAsString = "";
-        try {
-            logonAsString = mapper.writeValueAsString(playerCredentials);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
+    public PlayerMetaData getPlayerData(String name, String pass) {
+        PlayerCredentials playerCredentials = new PlayerCredentials(name, pass);
         HttpResponse<JsonNode> response2 = Unirest.post("http://" + server + ":" + port + "/metadata/player")
 //                .queryString("userName", "Mosh")
 //                .queryString("userPass", "snakeitsasnake")
@@ -88,18 +78,4 @@ public class MultiPlayerMetaClient {
                 .asFile(fileName).getBody();
     }
 
-//    public AreaDescription getAreaDescription(String areaId) {
-//        ObjectMapper mapper = new ObjectMapper();//FIXME make this class member
-//
-//        //FIXME: proper path!
-//        HttpResponse<JsonNode> response = Unirest.get("http://" + server + ":" + port + "/playerMetaData")
-//                .header("accept", "application/json")
-//                .asJson();
-//        try {
-//            return mapper.readValue(response.getBody().toString(), AreaDescription.class);
-//        } catch (JsonProcessingException e) {
-//            e.printStackTrace();
-//        }
-//        return null;
-//    }
 }

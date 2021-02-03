@@ -35,6 +35,8 @@ public class Controller {
     private MultiPlayerAreaClient areaClient;
     private MultiPlayerMetaClient metaClient;
 
+    private PlayerMetaData playerMetaData;
+
     @FXML
     public ScrollPane mapScrollPane;
 
@@ -94,8 +96,8 @@ public class Controller {
 
     private void connect() {
         //FIXME make a connector that handles the logonConnect
-        PlayerMetaData playerMetaData = metaClient.getPlayerData("user");
-        String areaId = playerMetaData.getPlayerAreaId();
+        playerMetaData = metaClient.getPlayerData("Mosh", "swordFish");
+        String areaId = playerMetaData.playerAreaId;
         LOGGER.debug("connect, Player Meta Data: {}", playerMetaData);
         String zipDirectName = "C:\\Users\\fmar\\IdeaProjects\\multiplayerSwtClient\\maps";
         File zipDirectory = new File(zipDirectName);
@@ -119,7 +121,7 @@ public class Controller {
         try {
             areaClient = new MultiPlayerAreaClient("192.168.0.69", 10523);
             new Thread(areaClient).start();
-            PlayerRegistration playerRegistration = new PlayerRegistration(playerMetaData.getUserId());
+            PlayerRegistration playerRegistration = new PlayerRegistration(playerMetaData.userId);
             areaClient.register(playerRegistration);
 //            areaClient.write("submitting my user id: " + userId);
         } catch (IOException e) {
@@ -139,10 +141,10 @@ public class Controller {
         try {
             Direction direction = Direction.valueOf(dirString);
             ObjectMapper mapper = new ObjectMapper();
-            PlayerMovementRequest movement = new PlayerMovementRequest(UUID.randomUUID().toString(), direction);
+            PlayerMovementRequest movement = new PlayerMovementRequest(playerMetaData.userId, direction);
             Message message = new Message();
             message.jsonContent = mapper.writeValueAsString(movement);
-            message.className = PlayerMovementRequest.class.toString();
+            message.className = PlayerMovementRequest.class.getName();
             String messageAsJson = mapper.writeValueAsString(message);
             areaClient.write(messageAsJson);
         } catch (JsonProcessingException | NullPointerException | IllegalArgumentException e) {
