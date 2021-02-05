@@ -2,8 +2,8 @@ package com.github.martinfrank.multiplayerclient.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.martinfrank.multiplayerclient.model.AreaModel;
 import com.github.martinfrank.multiplayerprotocol.area.Message;
-import com.github.martinfrank.multiplayerprotocol.area.BaseMessageParser;
 import com.github.martinfrank.multiplayerprotocol.area.PlayerRegistration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,19 +27,16 @@ public class MultiPlayerAreaClient implements Runnable {
     private final Selector selector;
 
     private final ObjectMapper mapper = new ObjectMapper();
-    private final BaseMessageParser parser = new SwtMessageParser();
+    private final SwtMessageParser parser;
 
-    public MultiPlayerAreaClient(String server, int port) throws IOException {
+    public MultiPlayerAreaClient(String server, int port, AreaModel model) throws IOException {
         InetSocketAddress address = new InetSocketAddress(server, port);
         socketChannel = SocketChannel.open(address);
         socketChannel.configureBlocking(false);
         selector = Selector.open();
         socketChannel.register(selector, SelectionKey.OP_READ);
-    }
 
-    public static void main(String[] args) throws IOException {
-        MultiPlayerAreaClient client = new MultiPlayerAreaClient("192.168.0.69", 10523);
-        new Thread(client).start();
+        parser = new SwtMessageParser(model);
     }
 
     private void handleRead(SelectionKey key) throws IOException {
@@ -134,6 +131,7 @@ public class MultiPlayerAreaClient implements Runnable {
 
     public void register(PlayerRegistration playerRegistration) {
         try {
+            //FIXME MessageFactory
             ObjectMapper mapper = new ObjectMapper();
             Message message = new Message();
             message.className = PlayerRegistration.class.getName();

@@ -1,24 +1,55 @@
 package com.github.martinfrank.multiplayerclient.map;
 
-import org.mapeditor.core.Map;
-import org.mapeditor.io.TMXMapReader;
+import com.github.martinfrank.multiplayerclient.client.MultiPlayerMetaClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.tiledreader.FileSystemTiledReader;
+import org.tiledreader.TiledMap;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
 
 public class MapProvider {
 
-    private final Map map;
+    private static final Logger LOGGER = LoggerFactory.getLogger(MapProvider.class);
 
-    public MapProvider() throws Exception {
-        //FIXME restAccess for map
-        //FIXME - proper directory access
-        String jarDirectory = new File(MapProvider.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParentFile().getPath();
-        TMXMapReader reader = new TMXMapReader();
-        String mapName = jarDirectory + "/TempleTest/TempleTest.tmx";
-        map = reader.readMap(mapName);
+    private static final String MAP = "map.tmx";
+
+    private final TiledMap tiledMap;
+
+    public MapProvider(MultiPlayerMetaClient metaClient) throws Exception {
+        downloadMap(metaClient);
+        String jarDirectory = FileUtils.getJarDirectory();
+        String areaDownloadDir = "maps";
+        String areaMapId = "templeTest";
+        String mapName = jarDirectory + "/"
+                + areaDownloadDir + "/"
+                + areaMapId + "/"
+                + MAP;
+        LOGGER.debug("loading map: {}", mapName);
+        FileSystemTiledReader fileSystemTiledReader = new FileSystemTiledReader();
+        tiledMap = fileSystemTiledReader.getMap(mapName);
     }
 
-    public Map getMap() {
-        return map;
+    private void downloadMap(MultiPlayerMetaClient metaClient) {
+        String areaDownloadDir = "maps";
+        String dlFilename = "download.zip";
+        String areaMapId = "templeTest";
+        try {
+            String jarDirectory = FileUtils.getJarDirectory();
+            String mapDir = FileUtils.createDirectory(areaDownloadDir);
+            String downloadFilename = FileUtils.reCreateFile(mapDir, dlFilename);
+            LOGGER.debug("downloadFilename {}", downloadFilename);
+            File zipFile = metaClient.downloadMap(downloadFilename, areaMapId);
+            LOGGER.debug("ZipFile: {}", zipFile);
+            UnzipUtility.unzip(zipFile, jarDirectory + "/maps/" + areaMapId);
+        } catch (IOException | URISyntaxException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public TiledMap getMap() {
+        return tiledMap;
     }
 }

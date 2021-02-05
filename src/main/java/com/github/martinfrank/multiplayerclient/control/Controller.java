@@ -4,7 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.martinfrank.multiplayerclient.client.MultiPlayerAreaClient;
 import com.github.martinfrank.multiplayerclient.client.MultiPlayerMetaClient;
-import com.github.martinfrank.multiplayerclient.map.UnzipUtility;
+import com.github.martinfrank.multiplayerclient.map.MapProvider;
+import com.github.martinfrank.multiplayerclient.model.AreaModel;
 import com.github.martinfrank.multiplayerclient.view.MapCanvas;
 import com.github.martinfrank.multiplayerprotocol.area.Direction;
 import com.github.martinfrank.multiplayerprotocol.area.Message;
@@ -21,10 +22,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.UUID;
+import org.tiledreader.TiledMap;
 
 
 public class Controller {
@@ -63,10 +61,8 @@ public class Controller {
 
 
     public void init() {
-
         VBox.setVgrow(hbox, Priority.ALWAYS);
         HBox.setHgrow(mapScrollPane, Priority.ALWAYS);
-
 
         includeSteering();
         includeConnection();
@@ -76,8 +72,6 @@ public class Controller {
             int x = (int) mouseEvent.getX();
             int y = (int) mouseEvent.getY();
         });
-
-//        steer("N");
 
     }
 
@@ -99,45 +93,23 @@ public class Controller {
         playerMetaData = metaClient.getPlayerData("Mosh", "swordFish");
         String areaId = playerMetaData.playerAreaId;
         LOGGER.debug("connect, Player Meta Data: {}", playerMetaData);
-        String zipDirectName = "C:\\Users\\fmar\\IdeaProjects\\multiplayerSwtClient\\maps";
-        File zipDirectory = new File(zipDirectName);
-        if (!zipDirectory.exists()) {
-            zipDirectory.mkdirs();
-        }
-        String zipFileName = zipDirectName + "\\download.zip";
-        File zipFile = new File(zipFileName);
-        if (zipFile.exists()) {
-            zipFile.delete();
-        }
+        try {
+            TiledMap map = new MapProvider(metaClient).getMap();
+            AreaModel model = new AreaModel(map);
+            mapCanvas.setAreaModel(model);
 
-        //nur wenn man diese Karte noch nicht hat:
-        zipFile = metaClient.downloadMap(zipFileName, areaId);
-        try {
-            UnzipUtility.unzip(zipFile,
-                    "C:\\Users\\fmar\\IdeaProjects\\multiplayerSwtClient\\maps\\templeTest");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
-            areaClient = new MultiPlayerAreaClient("192.168.0.69", 10523);
+            areaClient = new MultiPlayerAreaClient("192.168.0.69", 10523, model);
             new Thread(areaClient).start();
             PlayerRegistration playerRegistration = new PlayerRegistration(playerMetaData.userId);
             areaClient.register(playerRegistration);
-//            areaClient.write("submitting my user id: " + userId);
-        } catch (IOException e) {
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
-//        try {
-//            Map map = new MapProvider().getMap();
-//            mapCanvas.setMap(map);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
 
     }
 
     private void steer(String dirString) {
-//        LOGGER.debug("dir: {}", dirString);
         try {
             Direction direction = Direction.valueOf(dirString);
             ObjectMapper mapper = new ObjectMapper();
@@ -150,7 +122,6 @@ public class Controller {
         } catch (JsonProcessingException | NullPointerException | IllegalArgumentException e) {
             e.printStackTrace();
         }
-
     }
 
     public MultiPlayerAreaClient getAreaClient() {

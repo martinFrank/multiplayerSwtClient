@@ -1,5 +1,6 @@
 package com.github.martinfrank.multiplayerclient.client;
 
+import com.github.martinfrank.multiplayerclient.model.AreaModel;
 import com.github.martinfrank.multiplayerprotocol.area.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,6 +8,13 @@ import org.slf4j.LoggerFactory;
 public class SwtMessageParser extends BaseMessageParser {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SwtMessageParser.class);
+
+    private final AreaModel model;
+
+    public SwtMessageParser(AreaModel model) {
+        super();
+        this.model = model;
+    }
 
     @Override
     public void handleAreaTotal(AreaTotal areaTotal) {
