@@ -1,16 +1,16 @@
 package com.github.martinfrank.multiplayerclient;
 
+import com.github.martinfrank.multiplayerclient.client.MultiPlayerMetaClient;
 import com.github.martinfrank.multiplayerclient.control.Controller;
 import com.github.martinfrank.multiplayerclient.control.ControllerFactory;
 import com.github.martinfrank.multiplayerclient.res.ResourceManager;
-import com.github.martinfrank.multiplayerclient.client.MultiPlayerAreaClient;
-import com.github.martinfrank.multiplayerclient.client.MultiPlayerMetaClient;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
+import org.aeonbits.owner.ConfigFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +21,7 @@ public class App extends Application {
     private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
     private Pane root;
 
-    private  Controller controller;
+    private Controller controller;
 
     public static void main(String[] args) {
         launch(args);
@@ -29,12 +29,7 @@ public class App extends Application {
 
     @Override
     public void init() {
-        try{
-            Class clazz = Class.forName("com.github.martinfrank.multiplayerprotocol.area.MapChanges");
-            LOGGER.debug("clazz: {}", clazz);
-        }catch (ClassNotFoundException e){
-            e.printStackTrace();
-        }
+        ClientConfig clientConfig = ConfigFactory.create(ClientConfig.class);
         ResourceManager resourceManager = new ResourceManager(getClass().getClassLoader());
         ControllerFactory controllerFactory = new ControllerFactory();
         try {
@@ -47,16 +42,10 @@ public class App extends Application {
         controller = controllerFactory.getRootController();
         controller.init();
 
-        //
-//        try{
-        //FIXME: statt des Clients  wird nur die Config übermittelt
-            controller.setMetaClient(new MultiPlayerMetaClient("192.168.0.69", 8080));
-//            areaClient = new MultiPlayerAreaClient("192.168.0.69", 10523);
-//            controller.setAreaClient(areaClient);
-//            new Thread(areaClient).start();
-//        }catch (IOException e){
-//            LOGGER.debug("error", e);
-//        }
+        String server = clientConfig.metaServerAddress();
+        int port = clientConfig.metaServerPort();
+        controller.setMetaClient(new MultiPlayerMetaClient(server, port));
+
 
     }
 
@@ -75,7 +64,7 @@ public class App extends Application {
 
     @Override
     public void stop() throws Exception {
-        if(controller.getAreaClient() != null) {
+        if (controller.getAreaClient() != null) {
             controller.getAreaClient().stop();
         }
         super.stop();
